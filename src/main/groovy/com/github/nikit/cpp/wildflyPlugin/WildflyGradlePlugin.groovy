@@ -1,3 +1,5 @@
+package com.github.nikit.cpp.wildflyPlugin
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration

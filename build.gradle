@@ -9,7 +9,14 @@ dependencies {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            groupId 'com.github.nikit.cpp'
+            artifactId 'wildflyPlugin'
+            version '0.1'
             from components.java
         }
     }
+}
+
+publishing {
+    repositories { maven { url "http://dl.bintray.com/nikit007/maven" } }
 }
