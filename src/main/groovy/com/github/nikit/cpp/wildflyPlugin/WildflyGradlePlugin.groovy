@@ -10,7 +10,6 @@ import org.gradle.util.GFileUtils
  * Created by nik on 12.05.15.
  */
 class WildflyGradlePlugin implements Plugin<Project> {
-
     File buildDir
     File dependencyWorkspace
     Project projectInstance

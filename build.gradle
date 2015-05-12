@@ -24,13 +24,14 @@ repositories {
 
 dependencies {
     compile gradleApi()
+    compile 'org.gradle:gradle-core:2.3'
     compile localGroovy() //not needed for Java plugins
     // other dependencies that your plugin requires
 }
 
 // Unless overridden in the pluginBundle config DSL, the project version will
 // be used as your plugin version when publishing
-version = "0.2"
+version = "0.5.2"
 group = "com.github.nikit.cpp"
 
 // The configuration example below shows the minimum required properties
