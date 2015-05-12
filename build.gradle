@@ -1,5 +1,10 @@
 apply plugin: 'groovy'
+//apply plugin: 'maven'
 apply plugin: 'maven-publish'
+
+//name = 'wildflyPlugin'
+group = 'com.github.nikit.cpp'
+version = '0.1'
 
 dependencies {
     compile gradleApi()
@@ -9,14 +14,15 @@ dependencies {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId 'com.github.nikit.cpp'
-            artifactId 'wildflyPlugin'
-            version '0.1'
             from components.java
         }
     }
 }
 
 publishing {
-    repositories { maven { url "http://dl.bintray.com/nikit007/maven" } }
+    repositories {
+        maven {
+            url "https://api.bintray.com/content/nikit007/maven/wildflyPlugin/"
+        }
+    }
 }
