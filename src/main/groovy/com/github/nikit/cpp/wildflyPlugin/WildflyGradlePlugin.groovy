@@ -19,6 +19,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
 
     void apply(Project project) {
         projectInstance = project
+        //project.plugins.apply(WildflyGradlePlugin.class)
         buildDir = project.buildDir
         dependencyWorkspace = new File(buildDir, 'dependency-workspace')
         dependencyWorkspace.mkdirs()
@@ -116,7 +117,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
         String version = dep.module.id.version
 
         File jarDest = new File(dependencyWorkspace, jarSrc.name)
-        GFileUtils.copyFile(jarSrc, jarDest)
+        org.gradle.util.GFileUtils.copyFile(jarSrc, jarDest)
 
         Set<ResolvedDependency> childrens = getChilderns(dep)
 
@@ -162,7 +163,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
     void deployDeployment(File jarSrc) {
         File wildflyDeploymentsFolder = new File("${projectInstance.wildfly.wildflyHome}/standalone/deployments/")
         File jarDest = new File(wildflyDeploymentsFolder, jarSrc.name)
-        GFileUtils.copyFile(jarSrc, jarDest)
+        org.gradle.util.GFileUtils.copyFile(jarSrc, jarDest)
     }
 
 }
