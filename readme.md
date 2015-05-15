@@ -1,8 +1,9 @@
 #TODO
 * numbers instead # in task prepareDependencies - as static variable
-* generate manifest wirh dependencies for project jar (optional)
-* in task deployDependencies make deploys via jboss-cli
 * make cache for remove duplicates dependencies
+* in task deployDependencies make deploys via jboss-cli
+* make providedCompile configuraion
+* generate manifest wirh dependencies for project jar (optional)
 * get environment variable WILDFLY_HOME
 
 #Usage
