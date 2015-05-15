@@ -24,7 +24,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
         dependencyWorkspace = new File(buildDir, 'dependency-workspace')
         dependencyWorkspace.mkdirs()
         Configuration conf = project.configurations[confName]
-        conf = conf.copy() // remove unnecessary dependencies from super configuration
+        // conf = conf.copy() // remove unnecessary dependencies from super configuration
 
         println "WildFly dependencies will be stored in '" + dependencyWorkspace + "'"
 
