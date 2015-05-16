@@ -48,20 +48,30 @@ class WildflyGradlePlugin implements Plugin<Project> {
         project.extensions.create(extencionName, WildflyPluginExtension)
 
 
-        project.task('deployDeployments') << {
-            isDeploy = true
-            processChildDependencies(getRootDependencies(), 0);
 
-            println "Deployment's jars will be deployed in the following order:"
-            processCachedDependencies();
-        }
-
-        project.task('makeDeployments') << {
+        Task makeDeployments = project.task('makeDeployments') << {
             isDeploy = false
             processChildDependencies(getRootDependencies(), 0);
 
             println "Deployment's jars must be deployed in the following order:"
             processCachedDependencies();
+
+        }
+
+        Task deployDeployments = project.task('deployDeployments') << {
+            /*isDeploy = true
+            processChildDependencies(getRootDependencies(), 0);
+
+            println "Deployment's jars will be deployed in the following order:"
+            processCachedDependencies();*/
+
+        }
+        deployDeployments.doLast {
+            println 'deployDeployments.doLast'
+        }
+
+        projectInstance.tasks['jar'].doLast {
+            println 'jar.doLast'
 
         }
 
