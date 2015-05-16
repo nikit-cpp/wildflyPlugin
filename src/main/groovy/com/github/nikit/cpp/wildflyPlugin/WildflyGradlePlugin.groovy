@@ -13,7 +13,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
     File buildDir
     File dependencyWorkspace
     Project projectInstance
-    String confName = 'compile'
+    String confNameCompile = 'compile'
     String confNameProvided = 'providedCompile'
     boolean isDeploy
     boolean printDeployOrder
@@ -25,12 +25,11 @@ class WildflyGradlePlugin implements Plugin<Project> {
     void apply(Project project) {
         cachedDependencies = new ArrayList<>()
         projectInstance = project
-        //project.plugins.apply(WildflyGradlePlugin.class)
+
         buildDir = project.buildDir
         dependencyWorkspace = new File(buildDir, 'dependency-workspace')
         dependencyWorkspace.mkdirs()
-        Configuration conf = project.configurations[confName]
-        // conf = conf.copy() // remove unnecessary dependencies from super configuration
+        Configuration conf = project.configurations[confNameCompile]
 
         println "WildFly dependencies will be stored in '" + dependencyWorkspace + "'"
 
@@ -49,11 +48,14 @@ class WildflyGradlePlugin implements Plugin<Project> {
             printDeployOrder = true
             projectInstance.wildfly.printTree = false
             processChildDependencies(getRootDependencies(), 0);
-            processCachedDependencies();
 
+            processCachedDependencies();
         }
     }
 
+    /**
+     * Последовательно обрабатывает все зависимости cachedDependencies
+     */
     void processCachedDependencies() {
         for (ResolvedDependency dep : cachedDependencies) {
             File changedJar = createDeploymentInDependencyWorkspace(dep)
@@ -66,8 +68,12 @@ class WildflyGradlePlugin implements Plugin<Project> {
         }
     }
 
+    /**
+     * Получает зависимости самого первого уровня, убирает из них providedCompile
+     * @return
+     */
     Set<ResolvedDependency> getRootDependencies() {
-        Configuration confCompile = projectInstance.configurations[confName]
+        Configuration confCompile = projectInstance.configurations[confNameCompile]
         Configuration confProvided = projectInstance.configurations[confNameProvided]
         Set<ResolvedDependency> compileDependencies = confCompile.resolvedConfiguration.firstLevelModuleDependencies
         Set<ResolvedDependency> providedDependencies = confProvided.resolvedConfiguration.firstLevelModuleDependencies
@@ -76,7 +82,8 @@ class WildflyGradlePlugin implements Plugin<Project> {
     }
 
     /**
-     * Основная функция, рекурсивно обрабатывающая дерево зависимостей
+     * Основная функция, рекурсивно обрабатывающая дерево зависимостей.
+     * Заполняет cachedDependencies
      * @param allDependencies
      * @param level
      */
@@ -91,7 +98,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
             // спускаемся на нижние уровни рекурсии
             processChildDependencies(childrens, level);
 
-            postCildrenProcessed(dep)
+            postChildrenProcessed(dep)
         }
 
     }
@@ -102,16 +109,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
         }
     }
 
-    private void postCildrenProcessed(ResolvedDependency dep) {
-        // затем деплоим - сделано, чтобы порядок деплоя был таким: от конечных узлов дерева, не имеющих зависимостей, к родительским
-        /*File changedJar = createDeploymentInDependencyWorkspace(dep)
-        if(isDeploy) {
-            deployDeployment(changedJar)
-        }
-        if(printDeployOrder){
-            printDeployment(changedJar)
-        }
-*/
+    private void postChildrenProcessed(ResolvedDependency dep) {
         if (!cachedDependencies.contains(dep)) {
             cachedDependencies.add(dep)
         }
@@ -125,7 +123,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
     Set<ResolvedDependency> getChilderns(ResolvedDependency dep) {
         Set<ResolvedDependency> childrens = new HashSet<ResolvedDependency>();
         dep.children.each {
-            if (it.configuration == confName) {
+            if (it.configuration == confNameCompile) {
                 childrens.add(it)
             }
         }
