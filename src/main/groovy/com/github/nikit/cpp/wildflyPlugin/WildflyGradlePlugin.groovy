@@ -56,27 +56,41 @@ class WildflyGradlePlugin implements Plugin<Project> {
         return compileDependencies
     }
 
+    /**
+     * Основная функция, рекурсивно обрабатывающая дерево зависимостей
+     * @param allDependencies
+     * @param level
+     */
     void processChildDependencies(Set<ResolvedDependency> allDependencies, int level) {
         level++
 
         for (ResolvedDependency dep : allDependencies) {
-            if(projectInstance.wildfly.printTree){
-                printDependency(dep, level)
-            }
+            preChildernProcessed(dep, level)
 
             Set<ResolvedDependency> childrens = getChilderns(dep)
 
-            // сначала спускаемся на нижние уровни рекурсии
+            // спускаемся на нижние уровни рекурсии
             processChildDependencies(childrens, level);
 
-            // затем деплоим - сделано, чтобы порядок деплоя был таким: от конечных узлов дерева, не имеющих зависимостей, к родительским
-            File changedJar = addChildDependenciesToManifest(dep)
-            if(isDeploy) {
-                deployDeployment(changedJar)
-            }
-            if(printDeployOrder){
-                printDeployment(changedJar)
-            }
+            postCildrenProcessed(dep)
+        }
+
+    }
+
+    private void preChildernProcessed(ResolvedDependency dep, int level) {
+        if(projectInstance.wildfly.printTree){
+            printDependency(dep, level)
+        }
+    }
+
+    private void postCildrenProcessed(ResolvedDependency dep) {
+        // затем деплоим - сделано, чтобы порядок деплоя был таким: от конечных узлов дерева, не имеющих зависимостей, к родительским
+        File changedJar = createDeploymentInDependencyWorkspace(dep)
+        if(isDeploy) {
+            deployDeployment(changedJar)
+        }
+        if(printDeployOrder){
+            printDeployment(changedJar)
         }
 
     }
@@ -114,20 +128,21 @@ class WildflyGradlePlugin implements Plugin<Project> {
         println " " + iterableDependency++ + " ${dep}"
     }
 
+
     /**
      * Копирует .jar зависимости в папку dependency-workspace
      * Изменяет .jar: добавляет зависимостей-потомков в MANIFEST.MF
      * @param dep
      * @return
      */
-    File addChildDependenciesToManifest(ResolvedDependency dep) {
+    File createDeploymentInDependencyWorkspace(ResolvedDependency dep) {
         File jarSrc = getJarFromDependency(dep)
         String group = dep.module.id.group
         String name = dep.module.id.name
         String version = dep.module.id.version
 
         File jarDest = new File(dependencyWorkspace, jarSrc.name)
-        org.gradle.util.GFileUtils.copyFile(jarSrc, jarDest)
+        GFileUtils.copyFile(jarSrc, jarDest)
 
         Set<ResolvedDependency> childrens = getChilderns(dep)
 
@@ -173,7 +188,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
     void deployDeployment(File jarSrc) {
         File wildflyDeploymentsFolder = new File("${projectInstance.wildfly.wildflyHome}/standalone/deployments/")
         File jarDest = new File(wildflyDeploymentsFolder, jarSrc.name)
-        org.gradle.util.GFileUtils.copyFile(jarSrc, jarDest)
+        GFileUtils.copyFile(jarSrc, jarDest)
     }
 
 }
