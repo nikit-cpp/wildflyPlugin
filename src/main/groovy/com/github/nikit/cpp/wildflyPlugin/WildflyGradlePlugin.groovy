@@ -14,6 +14,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
     File dependencyWorkspace
     Project projectInstance
     String confName = 'compile'
+    String confNameProvided = 'providedCompile'
     boolean isDeploy
     boolean printDeployOrder
     static int iterableDependency
@@ -34,11 +35,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
 
         project.task('deployDependencies') << {
             isDeploy = true
-            // http://gradle.org/docs/current/javadoc/org/gradle/api/artifacts/ResolvedConfiguration.html
-            // http://gradle.org/docs/current/javadoc/org/gradle/api/artifacts/ResolvedDependency.html
-            Set<ResolvedDependency> allDependencies = conf.resolvedConfiguration.firstLevelModuleDependencies
-
-            processChildDependencies(allDependencies, 0);
+            processChildDependencies(getRootDependencies(), 0);
         }
 
         project.task('prepareDependencies') << {
@@ -46,9 +43,17 @@ class WildflyGradlePlugin implements Plugin<Project> {
             println "Dependent jars must be deployed as below order:"
             printDeployOrder = true
             projectInstance.wildfly.printTree = false
-            Set<ResolvedDependency> allDependencies = conf.resolvedConfiguration.firstLevelModuleDependencies
-            processChildDependencies(allDependencies, 0);
+            processChildDependencies(getRootDependencies(), 0);
         }
+    }
+
+    Set<ResolvedDependency> getRootDependencies() {
+        Configuration confCompile = projectInstance.configurations[confName]
+        Configuration confProvided = projectInstance.configurations[confNameProvided]
+        Set<ResolvedDependency> compileDependencies = confCompile.resolvedConfiguration.firstLevelModuleDependencies
+        Set<ResolvedDependency> providedDependencies = confProvided.resolvedConfiguration.firstLevelModuleDependencies
+        compileDependencies.removeAll(providedDependencies)
+        return compileDependencies
     }
 
     void processChildDependencies(Set<ResolvedDependency> allDependencies, int level) {
@@ -101,6 +106,10 @@ class WildflyGradlePlugin implements Plugin<Project> {
         println " " + "*"*level + " id=${dep.module.id} file=${jarSrc}"
     }
 
+    /**
+     * Выводит элементы нумерованного списка
+     * @param dep
+     */
     void printDeployment(File dep) {
         println " " + iterableDependency++ + " ${dep}"
     }

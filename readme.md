@@ -6,7 +6,7 @@
 * get environment variable WILDFLY_HOME
 
 #Usage
-Add
+Add  
 `wildfly {`
 `         wildflyHome = file('C:\\path\\to\\wildflyl')`
 `         printTree = true`
