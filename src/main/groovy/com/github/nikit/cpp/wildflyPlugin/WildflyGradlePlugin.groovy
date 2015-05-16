@@ -16,7 +16,6 @@ class WildflyGradlePlugin implements Plugin<Project> {
     String confNameCompile = 'compile'
     String confNameProvided = 'providedCompile'
     boolean isDeploy
-    boolean printDeployOrder
     static int iterableDependency
 
     // Упорядоченное хранилище зависимостей, предназначенное для предотвращения дублирования
@@ -39,16 +38,16 @@ class WildflyGradlePlugin implements Plugin<Project> {
         project.task('deployDependencies') << {
             isDeploy = true
             processChildDependencies(getRootDependencies(), 0);
+
+            println "Dependent jars will be deployed as below order:"
             processCachedDependencies();
         }
 
         project.task('prepareDependencies') << {
             isDeploy = false
-            println "Dependent jars must be deployed as below order:"
-            printDeployOrder = true
-            projectInstance.wildfly.printTree = false
             processChildDependencies(getRootDependencies(), 0);
 
+            println "Dependent jars must be deployed as below order:"
             processCachedDependencies();
         }
     }
@@ -62,7 +61,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
             if (isDeploy) {
                 deployDeployment(changedJar)
             }
-            if (printDeployOrder) {
+            if (projectInstance.wildfly.printOrder) {
                 printDeployment(changedJar)
             }
         }
@@ -216,4 +215,5 @@ class WildflyGradlePlugin implements Plugin<Project> {
 class WildflyPluginExtension {
     File wildflyHome
     boolean printTree
+    boolean printOrder
 }
