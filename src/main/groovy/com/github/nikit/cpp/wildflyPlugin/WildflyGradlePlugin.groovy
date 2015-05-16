@@ -71,29 +71,15 @@ class WildflyGradlePlugin implements Plugin<Project> {
         }
 
         projectInstance.tasks['jar'].doFirst {
-            println 'Changing manifest'
             Jar jarTask = it;
-            println jarTask
-            println "will be added ${makeDependenciesString(getRootDependencies())}"
-            jarTask.manifest.attributes.put("Dependencies", makeDependenciesString(getRootDependencies()));
+            Set<ResolvedDependency> firstLevelDependencies = getRootDependencies()
+            String depStr = makeDependenciesString(firstLevelDependencies)
+            if(projectInstance.wildfly.updateManifest) {
+                println "First level dependencies '${depStr}' added to manifest."
+                jarTask.manifest.attributes.put("Dependencies", depStr);
+            }
         }
 
-        String jarTaskName = 'updateManifest'
-        Task jarWithDependenciesInManifest = project.task(jarTaskName) << {
-            File jarDest = projectInstance.wildfly.jarToUpdateManifest
-            if (jarDest == null || !jarDest.exists()){
-                throw new RuntimeException("File ${jarDest} not exist! For use '${jarTaskName}' task specify jarToUpdateManifest=file('/path/to/file.jar') parameter in ${extencionName} extension.")
-            }
-            projectInstance.ant.jar(destfile: jarDest, update: true) {
-                delegate.manifest {
-                    attribute(name: 'Dependencies', value: makeDependenciesString(getRootDependencies()))
-                }
-            }
-        }
-        jarWithDependenciesInManifest.setGroup(BasePlugin.BUILD_GROUP);
-        projectInstance.tasks.withType(Jar) {
-            jarWithDependenciesInManifest.dependsOn(it)
-        }
     }
 
 
@@ -205,7 +191,8 @@ class WildflyGradlePlugin implements Plugin<Project> {
      * @param dep
      */
     void printDeployment(File dep) {
-        println dependencyNumber++ + ". ${dep.name}"
+        dependencyNumber++
+        println dependencyNumber + ". ${dep.name}"
     }
 
 
@@ -275,7 +262,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
 
 class WildflyPluginExtension {
     File wildflyHome
-    File jarToUpdateManifest
+    boolean updateManifest
     boolean printTree
     boolean printOrder
 }
