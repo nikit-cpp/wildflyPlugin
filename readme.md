@@ -1,6 +1,5 @@
 #TODO
 * in task deployDependencies make deploys via jboss-cli
-* make providedCompile configuraion
 * generate manifest wirh dependencies for project jar (optional)
 * get environment variable WILDFLY_HOME
 

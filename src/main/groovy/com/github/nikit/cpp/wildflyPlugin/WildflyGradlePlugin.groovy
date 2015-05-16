@@ -44,30 +44,15 @@ class WildflyGradlePlugin implements Plugin<Project> {
         dependencyWorkspace = new File(buildDir, 'dependency-workspace')
         dependencyWorkspace.mkdirs()
 
-        Configuration confProvided
         try {
-            confProvided = project.configurations[confNameProvided]
+            project.configurations[confNameProvided]
         } catch (UnknownConfigurationException e) {
-            // https://github.com/gradle/gradle/blob/master/subprojects/plugins/src/main/groovy/org/gradle/api/plugins/WarPlugin.java
-            /*confProvided = project.configurations.create(confNameProvided).setVisible(false).setDescription('Provided by app server configuration')
-
-            project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME).extendsFrom(confProvided);
-            project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).extendsFrom(confProvided);
-*/
+            // добавляем providedCompile конфигурацию, если она не существует
             addConfiguration(project.configurations, confNameProvided);
         }
 
-
-        /*project.configurations.create(confNameProvided).with {
-            visible = false
-            transitive = true
-            description = 'The apt libraries to be used for annotated sql.'
-        }*/
-
-
         println "WildFly dependencies will be stored in '" + dependencyWorkspace + "'"
 
-        // Add the 'greeting' extension object
         project.extensions.create("wildfly", WildflyPluginExtension)
 
         project.task('deployDependencies') << {
@@ -90,14 +75,14 @@ class WildflyGradlePlugin implements Plugin<Project> {
 
 
     private Configuration addConfiguration(ConfigurationContainer configurations, String name) {
+        // https://github.com/gradle/gradle/blob/master/subprojects/plugins/src/main/groovy/org/gradle/api/plugins/WarPlugin.java
+        // https://github.com/spring-projects/gradle-plugins/blob/master/propdeps-plugin/src/main/groovy/org/springframework/build/gradle/propdep/PropDepsPlugin.groovy
         Configuration compile = configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         Configuration configuration = configurations.create(name)
         compile.extendsFrom(configuration)
         configuration.visible = false
         configuration.transitive = false
-        /*configuration.allDependencies.all {
-            dep -> configurations.default.exclude(group: dep.group, module: dep.name)
-        }*/
+
         return configuration
     }
 
