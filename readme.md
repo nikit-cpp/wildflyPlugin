@@ -20,7 +20,6 @@ wildfly {
 	printTree = false // print dependency tree for debug purposes
 }
 ```
-
 3. If nesserary change `compile` configuration to `providedCompile` for those dependencies that are prolided by WildFly,
 for example:
 ```
