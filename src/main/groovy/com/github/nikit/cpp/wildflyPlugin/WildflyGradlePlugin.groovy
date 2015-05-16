@@ -3,7 +3,20 @@ package com.github.nikit.cpp.wildflyPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.ExcludeRule
+import org.gradle.api.artifacts.PublishArtifactSet
+import org.gradle.api.artifacts.ResolutionStrategy
+import org.gradle.api.artifacts.ResolvableDependencies
+import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.StopExecutionException
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.util.GFileUtils
 
 /**
@@ -13,7 +26,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
     File buildDir
     File dependencyWorkspace
     Project projectInstance
-    String confNameCompile = 'compile'
+    String confNameCompile = JavaPlugin.COMPILE_CONFIGURATION_NAME
     String confNameProvided = 'providedCompile'
     boolean isDeploy
     static int iterableDependency
@@ -28,7 +41,16 @@ class WildflyGradlePlugin implements Plugin<Project> {
         buildDir = project.buildDir
         dependencyWorkspace = new File(buildDir, 'dependency-workspace')
         dependencyWorkspace.mkdirs()
-        Configuration conf = project.configurations[confNameCompile]
+        Configuration confProvided = project.configurations[confNameProvided]
+
+        if(confProvided == null) {
+            // https://github.com/gradle/gradle/blob/master/subprojects/plugins/src/main/groovy/org/gradle/api/plugins/WarPlugin.java
+            confProvided = project.configurations.create(confNameProvided).setVisible(false).setDescription('Provided by app server configuration')
+
+            project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME).extendsFrom(confProvided);
+            project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).extendsFrom(confProvided);
+        }
+
 
         println "WildFly dependencies will be stored in '" + dependencyWorkspace + "'"
 
