@@ -1,5 +1,5 @@
 // First, apply the publishing plugin
-//apply plugin: 'maven-publish'
+apply plugin: 'maven-publish'
 apply plugin: "com.gradle.plugin-publish"
 apply plugin: 'groovy'
 
@@ -28,7 +28,7 @@ dependencies {
 
 // Unless overridden in the pluginBundle config DSL, the project version will
 // be used as your plugin version when publishing
-version = "0.5.8"
+version = "0.5.9"
 group = "com.github.nikit.cpp"
 
 // The configuration example below shows the minimum required properties
@@ -46,11 +46,12 @@ pluginBundle {
         }
     }
 }
-/*
+
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
         }
     }
-}*/
+}

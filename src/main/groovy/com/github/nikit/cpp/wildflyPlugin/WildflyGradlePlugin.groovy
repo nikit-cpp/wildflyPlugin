@@ -16,6 +16,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
     String confName = 'compile'
     boolean isDeploy
     boolean printDeployOrder
+    static int iterableDependency
 
     void apply(Project project) {
         projectInstance = project
@@ -101,7 +102,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
     }
 
     void printDeployment(File dep) {
-        println " " + "#" + " ${dep}"
+        println " " + iterableDependency++ + " ${dep}"
     }
 
     /**

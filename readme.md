@@ -1,5 +1,4 @@
 #TODO
-* numbers instead # in task prepareDependencies - as static variable
 * make cache for remove duplicates dependencies
 * in task deployDependencies make deploys via jboss-cli
 * make providedCompile configuraion
