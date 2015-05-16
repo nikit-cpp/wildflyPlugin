@@ -95,9 +95,9 @@ class WildflyGradlePlugin implements Plugin<Project> {
         compile.extendsFrom(configuration)
         configuration.visible = false
         configuration.transitive = false
-        configuration.allDependencies.all {
+        /*configuration.allDependencies.all {
             dep -> configurations.default.exclude(group: dep.group, module: dep.name)
-        }
+        }*/
         return configuration
     }
 
