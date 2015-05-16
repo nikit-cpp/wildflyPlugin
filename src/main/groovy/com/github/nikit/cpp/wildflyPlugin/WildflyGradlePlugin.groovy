@@ -7,6 +7,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.util.GFileUtils
 
 /**
@@ -43,6 +44,16 @@ class WildflyGradlePlugin implements Plugin<Project> {
 
         project.extensions.create("wildfly", WildflyPluginExtension)
 
+
+
+        // TODO убрать в таску, цепляющуюся к таске jar
+        project.apply plugin: 'java'
+        addDependenciesToRootProjectJar();
+
+
+
+
+
         project.task('deployDependencies') << {
             isDeploy = true
             processChildDependencies(getRootDependencies(), 0);
@@ -57,6 +68,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
 
             println "Deployment's jars must be deployed in the following order:"
             processCachedDependencies();
+
         }
     }
 
@@ -115,7 +127,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
         level++
 
         for (ResolvedDependency dep : allDependencies) {
-            preChildernProcessed(dep, level)
+            preChildrenProcessed(dep, level)
 
             Set<ResolvedDependency> childrens = getChilderns(dep)
 
@@ -127,7 +139,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
 
     }
 
-    private void preChildernProcessed(ResolvedDependency dep, int level) {
+    private void preChildrenProcessed(ResolvedDependency dep, int level) {
         if(projectInstance.wildfly.printTree){
             printNodeDependency(dep, level)
         }
@@ -200,6 +212,14 @@ class WildflyGradlePlugin implements Plugin<Project> {
             }
         }
         return jarDest
+    }
+
+    void addDependenciesToRootProjectJar() {
+        projectInstance.tasks.withType(Jar) {
+            it.manifest.attributes.put("Dependencies",
+                    "deployment.qpid-client-0.32.jar, " +
+                            "deployment.java-mpns-0.0.3.jar ")
+        }
     }
 
     /**
