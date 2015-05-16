@@ -19,7 +19,11 @@ class WildflyGradlePlugin implements Plugin<Project> {
     boolean printDeployOrder
     static int iterableDependency
 
+    // Упорядоченное хранилище зависимостей, предназначенное для предотвращения дублирования
+    List<ResolvedDependency> cachedDependencies
+
     void apply(Project project) {
+        cachedDependencies = new ArrayList<>()
         projectInstance = project
         //project.plugins.apply(WildflyGradlePlugin.class)
         buildDir = project.buildDir
@@ -36,6 +40,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
         project.task('deployDependencies') << {
             isDeploy = true
             processChildDependencies(getRootDependencies(), 0);
+            processCachedDependencies();
         }
 
         project.task('prepareDependencies') << {
@@ -44,6 +49,20 @@ class WildflyGradlePlugin implements Plugin<Project> {
             printDeployOrder = true
             projectInstance.wildfly.printTree = false
             processChildDependencies(getRootDependencies(), 0);
+            processCachedDependencies();
+
+        }
+    }
+
+    void processCachedDependencies() {
+        for (ResolvedDependency dep : cachedDependencies) {
+            File changedJar = createDeploymentInDependencyWorkspace(dep)
+            if (isDeploy) {
+                deployDeployment(changedJar)
+            }
+            if (printDeployOrder) {
+                printDeployment(changedJar)
+            }
         }
     }
 
@@ -79,20 +98,23 @@ class WildflyGradlePlugin implements Plugin<Project> {
 
     private void preChildernProcessed(ResolvedDependency dep, int level) {
         if(projectInstance.wildfly.printTree){
-            printDependency(dep, level)
+            printNodeDependency(dep, level)
         }
     }
 
     private void postCildrenProcessed(ResolvedDependency dep) {
         // затем деплоим - сделано, чтобы порядок деплоя был таким: от конечных узлов дерева, не имеющих зависимостей, к родительским
-        File changedJar = createDeploymentInDependencyWorkspace(dep)
+        /*File changedJar = createDeploymentInDependencyWorkspace(dep)
         if(isDeploy) {
             deployDeployment(changedJar)
         }
         if(printDeployOrder){
             printDeployment(changedJar)
         }
-
+*/
+        if (!cachedDependencies.contains(dep)) {
+            cachedDependencies.add(dep)
+        }
     }
 
     /**
@@ -111,7 +133,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
         return childrens
     }
 
-    void printDependency(ResolvedDependency dep, int level) {
+    void printNodeDependency(ResolvedDependency dep, int level) {
         File jarSrc = getJarFromDependency(dep)
         String group = dep.module.id.group
         String name = dep.module.id.name
