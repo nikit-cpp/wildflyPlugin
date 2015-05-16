@@ -70,9 +70,12 @@ class WildflyGradlePlugin implements Plugin<Project> {
             println 'deployDeployments.doLast'
         }
 
-        projectInstance.tasks['jar'].doLast {
-            println 'jar.doLast'
-
+        projectInstance.tasks['jar'].doFirst {
+            println 'Changing manifest'
+            Jar jarTask = it;
+            println jarTask
+            println "will be added ${makeDependenciesString(getRootDependencies())}"
+            jarTask.manifest.attributes.put("Dependencies", makeDependenciesString(getRootDependencies()));
         }
 
         String jarTaskName = 'updateManifest'
