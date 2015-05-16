@@ -33,4 +33,6 @@ and adds Dependencies string into theirs MANIFEST.MF
 
 * `gradle deployDeployments` makes all of `makeDeployments` and copies jars from
 `C:\Path\To\Project\build\dependency-workspace` to `wildflyHome/standalone/deployments/`.
-This task will be rewrited with jboss-cli because WildFly's scanner doesn't considers deploy order (by file attribute `create time`) and sometimes deploy failed.
+This task will be rewrited with jboss-cli because WildFly's scanner doesn't considers deploy order (by file attribute `create time`) and sometimes deploy failed.  
+*Workadrond:*
+You have to restart server that deployments correctly loaded.
