@@ -6,9 +6,11 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.UnknownConfigurationException
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.util.GFileUtils
+import org.gradle.api.Task
 
 /**
  * Created by nik on 12.05.15.
@@ -19,6 +21,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
     Project projectInstance
     String confNameCompile = JavaPlugin.COMPILE_CONFIGURATION_NAME
     String confNameProvided = 'providedCompile'
+    String extencionName = 'wildfly'
     boolean isDeploy
     static int dependencyNumber
 
@@ -42,19 +45,10 @@ class WildflyGradlePlugin implements Plugin<Project> {
 
         println "WildFly deployments will be stored in '" + dependencyWorkspace + "'"
 
-        project.extensions.create("wildfly", WildflyPluginExtension)
+        project.extensions.create(extencionName, WildflyPluginExtension)
 
 
-
-        // TODO убрать в таску, цепляющуюся к таске jar
-        project.apply plugin: 'java'
-        addDependenciesToRootProjectJar();
-
-
-
-
-
-        project.task('deployDependencies') << {
+        project.task('deployDeployments') << {
             isDeploy = true
             processChildDependencies(getRootDependencies(), 0);
 
@@ -62,13 +56,30 @@ class WildflyGradlePlugin implements Plugin<Project> {
             processCachedDependencies();
         }
 
-        project.task('prepareDependencies') << {
+        project.task('makeDeployments') << {
             isDeploy = false
             processChildDependencies(getRootDependencies(), 0);
 
             println "Deployment's jars must be deployed in the following order:"
             processCachedDependencies();
 
+        }
+
+        String jarTaskName = 'updateManifest'
+        Task jarWithDependenciesInManifest = project.task(jarTaskName) << {
+            File jarDest = projectInstance.wildfly.jarToUpdateManifest
+            if (jarDest == null || !jarDest.exists()){
+                throw new RuntimeException("File ${jarDest} not exist! For use '${jarTaskName}' task specify jarToUpdateManifest=file('/path/to/file.jar') parameter in ${extencionName} extension.")
+            }
+            projectInstance.ant.jar(destfile: jarDest, update: true) {
+                delegate.manifest {
+                    attribute(name: 'Dependencies', value: makeDependenciesString(getRootDependencies()))
+                }
+            }
+        }
+        jarWithDependenciesInManifest.setGroup(BasePlugin.BUILD_GROUP);
+        projectInstance.tasks.withType(Jar) {
+            jarWithDependenciesInManifest.dependsOn(it)
         }
     }
 
@@ -214,14 +225,6 @@ class WildflyGradlePlugin implements Plugin<Project> {
         return jarDest
     }
 
-    void addDependenciesToRootProjectJar() {
-        projectInstance.tasks.withType(Jar) {
-            it.manifest.attributes.put("Dependencies",
-                    "deployment.qpid-client-0.32.jar, " +
-                            "deployment.java-mpns-0.0.3.jar ")
-        }
-    }
-
     /**
      * Преобразует ResolvedDependency в File
      * @param dep
@@ -259,6 +262,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
 
 class WildflyPluginExtension {
     File wildflyHome
+    File jarToUpdateManifest
     boolean printTree
     boolean printOrder
 }
