@@ -4,21 +4,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.DependencySet
-import org.gradle.api.artifacts.ExcludeRule
-import org.gradle.api.artifacts.PublishArtifactSet
-import org.gradle.api.artifacts.ResolutionStrategy
-import org.gradle.api.artifacts.ResolvableDependencies
-import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.UnknownConfigurationException
-import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.specs.Spec
-import org.gradle.api.tasks.StopExecutionException
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.util.GFileUtils
 
 /**
@@ -31,7 +19,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
     String confNameCompile = JavaPlugin.COMPILE_CONFIGURATION_NAME
     String confNameProvided = 'providedCompile'
     boolean isDeploy
-    static int iterableDependency
+    static int dependencyNumber
 
     // Упорядоченное хранилище зависимостей, предназначенное для предотвращения дублирования
     List<ResolvedDependency> cachedDependencies
@@ -51,7 +39,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
             addConfiguration(project.configurations, confNameProvided);
         }
 
-        println "WildFly dependencies will be stored in '" + dependencyWorkspace + "'"
+        println "WildFly deployments will be stored in '" + dependencyWorkspace + "'"
 
         project.extensions.create("wildfly", WildflyPluginExtension)
 
@@ -59,7 +47,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
             isDeploy = true
             processChildDependencies(getRootDependencies(), 0);
 
-            println "Dependent jars will be deployed as below order:"
+            println "Deployment's jars will be deployed in the following order:"
             processCachedDependencies();
         }
 
@@ -67,7 +55,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
             isDeploy = false
             processChildDependencies(getRootDependencies(), 0);
 
-            println "Dependent jars must be deployed as below order:"
+            println "Deployment's jars must be deployed in the following order:"
             processCachedDependencies();
         }
     }
@@ -181,12 +169,12 @@ class WildflyGradlePlugin implements Plugin<Project> {
      * @param dep
      */
     void printDeployment(File dep) {
-        println " " + iterableDependency++ + " ${dep}"
+        println dependencyNumber++ + ". ${dep.name}"
     }
 
 
     /**
-     * Копирует .jar зависимости в папку dependency-workspace
+     * Копирует .jar зависимость в папку dependency-workspace
      * Изменяет .jar: добавляет зависимостей-потомков в MANIFEST.MF
      * @param dep
      * @return

@@ -36,8 +36,8 @@ group = "com.github.nikit.cpp"
 pluginBundle {
     website = 'https://github.com/nikit-cpp/wildflyPlugin'
     vcsUrl = 'https://github.com/nikit-cpp/wildflyPlugin.git'
-    description = 'Plugin for make WildFly deployments'
-    tags = ['wildfly', 'deploy']
+    description = 'Plugin for convert dependencies to WildFly deployments'
+    tags = ['wildfly', 'deploy', 'deployment', 'dependency', 'dependencies']
 
     plugins {
         wildflyPlugin {
