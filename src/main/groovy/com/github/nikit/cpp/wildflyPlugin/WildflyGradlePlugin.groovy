@@ -6,7 +6,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.UnknownConfigurationException
-import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.util.GFileUtils
@@ -19,14 +18,22 @@ class WildflyGradlePlugin implements Plugin<Project> {
     File buildDir
     File dependencyWorkspace
     Project projectInstance
-    String confNameCompile = JavaPlugin.COMPILE_CONFIGURATION_NAME
-    String confNameProvided = 'providedCompile'
     String extencionName = 'wildfly'
-    boolean isDeploy
+    boolean isDeploy // TODO будет убрано
     static int dependencyNumber
-
     // Упорядоченное хранилище зависимостей, предназначенное для предотвращения дублирования
     List<ResolvedDependency> cachedDependencies
+
+
+    String confNameCompile = JavaPlugin.COMPILE_CONFIGURATION_NAME
+    String confNameProvided = 'providedCompile'
+
+    String JAR_TASK = JavaPlugin.JAR_TASK_NAME
+    String AFTER_MAKE_DEPLOYMENTS_TASK = 'assemble'
+
+    // own tasks
+    String MAKE_DEPLOYMENTS_TASK = 'makeDeployments'
+    String DEPLOY_DEPLOYMENTS_TASK = 'deployDeployments'
 
     void apply(Project project) {
         cachedDependencies = new ArrayList<>()
@@ -49,7 +56,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
 
 
 
-        Task makeDeployments = project.task('makeDeployments') << {
+        Task makeDeployments = project.task(MAKE_DEPLOYMENTS_TASK) << {
             isDeploy = false
             processChildDependencies(getRootDependencies(), 0);
 
@@ -57,24 +64,25 @@ class WildflyGradlePlugin implements Plugin<Project> {
             processCachedDependencies();
 
         }
+        projectInstance.tasks[AFTER_MAKE_DEPLOYMENTS_TASK].dependsOn(makeDeployments)
 
-        Task deployDeployments = project.task('deployDeployments') << {
-            /*isDeploy = true
+        Task deployDeployments = project.task(DEPLOY_DEPLOYMENTS_TASK) << {
+            isDeploy = true
             processChildDependencies(getRootDependencies(), 0);
 
             println "Deployment's jars will be deployed in the following order:"
-            processCachedDependencies();*/
+            processCachedDependencies();
 
         }
         deployDeployments.doLast {
             println 'deployDeployments.doLast'
         }
 
-        projectInstance.tasks['jar'].doFirst {
+        projectInstance.tasks[JAR_TASK].doFirst {
             Jar jarTask = it;
             Set<ResolvedDependency> firstLevelDependencies = getRootDependencies()
             String depStr = makeDependenciesString(firstLevelDependencies)
-            if(projectInstance.wildfly.updateManifest) {
+            if(projectInstance.wildfly.addFirstLevelDependenciesToManifest) {
                 println "First level dependencies '${depStr}' added to manifest."
                 jarTask.manifest.attributes.put("Dependencies", depStr);
             }
@@ -262,7 +270,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
 
 class WildflyPluginExtension {
     File wildflyHome
-    boolean updateManifest
+    boolean addFirstLevelDependenciesToManifest
     boolean printTree
     boolean printOrder
 }
