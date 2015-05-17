@@ -262,7 +262,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
      * @param jarSrc
      */
     void deployDeployment(File jarSrc) {
-        String file = projectInstance.wildfly.wildflyPath
+        String file = projectInstance.wildfly.deploymentDestination
         String propToken = '${' + WILDFLY_HOME + '}'
         if(file.contains(propToken)) {
             String value = System.getenv().get(WILDFLY_HOME)
@@ -282,7 +282,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
 }
 
 class WildflyPluginExtension {
-    String wildflyPath
+    String deploymentDestination
     boolean addFirstLevelDependenciesToManifest
     boolean printTree
     boolean printOrder
