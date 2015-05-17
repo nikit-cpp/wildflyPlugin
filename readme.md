@@ -26,7 +26,7 @@ apply plugin: "com.github.nikit.cpp.wildflyPlugin"
 2. Add WildFly extension:  
 ```
 wildfly {
-	wildflyRelativePath = 'C:\\path\\to\\wildfly\\standalone\\deployments' // or 'WILDFLY_HOME\\standalone\\deployments'
+	wildflyPath = 'C:\\path\\to\\wildfly\\standalone\\deployments' // or '${WILDFLY_HOME}\\standalone\\deployments'
 	addFirstLevelDependenciesToManifest = true // generate manifest and add firstLevel dependencies
 	printOrder = true // print order for manually deploy
 	printTree = false // print dependency tree for debug purposes

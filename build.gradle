@@ -28,7 +28,7 @@ dependencies {
 
 // Unless overridden in the pluginBundle config DSL, the project version will
 // be used as your plugin version when publishing
-version = "0.7"
+version = "0.8"
 group = "com.github.nikit.cpp"
 
 // The configuration example below shows the minimum required properties
@@ -36,7 +36,7 @@ group = "com.github.nikit.cpp"
 pluginBundle {
     website = 'https://github.com/nikit-cpp/wildflyPlugin'
     vcsUrl = 'https://github.com/nikit-cpp/wildflyPlugin.git'
-    description = 'Plugin for convert dependencies to WildFly deployments'
+    description = ' Plugin for make WildFly deployments from compile dependencies.'
     tags = ['wildfly', 'deploy', 'deployment', 'dependency', 'dependencies']
 
     plugins {
