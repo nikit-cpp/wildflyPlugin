@@ -24,6 +24,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
     // Упорядоченное хранилище зависимостей, предназначенное для предотвращения дублирования
     List<ResolvedDependency> cachedDependencies
 
+    String WILDFLY_HOME = 'WILDFLY_HOME'
 
     String confNameCompile = JavaPlugin.COMPILE_CONFIGURATION_NAME
     String confNameProvided = 'providedCompile'
@@ -261,7 +262,19 @@ class WildflyGradlePlugin implements Plugin<Project> {
      * @param jarSrc
      */
     void deployDeployment(File jarSrc) {
-        File wildflyDeploymentsFolder = new File("${projectInstance.wildfly.wildflyHome}/standalone/deployments/")
+        String file = projectInstance.wildfly.wildflyRelativePath
+        String propToken = '${' + WILDFLY_HOME + '}'
+        if(file.contains(propToken)) {
+            String value = System.getenv().get(WILDFLY_HOME)
+            if(value == null) {
+                throw new RuntimeException("Please set environment variable ${WILDFLY_HOME} or use absolute path!")
+            }
+            file = file.replace(propToken, value)
+        }
+        File wildflyDeploymentsFolder = new File(file)
+        if(!wildflyDeploymentsFolder.exists()) {
+            throw new RuntimeException("Folder ${wildflyDeploymentsFolder.absolutePath} not exist!")
+        }
         File jarDest = new File(wildflyDeploymentsFolder, jarSrc.name)
         GFileUtils.copyFile(jarSrc, jarDest)
     }
@@ -269,7 +282,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
 }
 
 class WildflyPluginExtension {
-    File wildflyHome
+    String wildflyRelativePath
     boolean addFirstLevelDependenciesToManifest
     boolean printTree
     boolean printOrder

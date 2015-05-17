@@ -7,21 +7,33 @@ Also plugin can copy dependency jar to WildFly deploymets directory.
 
 #TODO
 * in task deployDeployments make deploys via jboss-cli
-* get environment variable WILDFLY_HOME
 
 #Usage
-1. Install plugin as described [here](https://plugins.gradle.org/plugin/com.github.nikit.cpp.wildflyPlugin).
-2. Add WildFly extension:
+1. Install plugin:  
+```
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "gradle.plugin.com.github.nikit.cpp:wildflyPlugin:0.7"
+  }
+}
+apply plugin: "com.github.nikit.cpp.wildflyPlugin"
+```
+2. Add WildFly extension:  
 ```
 wildfly {
-	wildflyHome = file('C:\\path\\to\\wildflyl')
+	wildflyRelativePath = 'C:\\path\\to\\wildfly\\standalone\\deployments' // or 'WILDFLY_HOME\\standalone\\deployments'
 	addFirstLevelDependenciesToManifest = true // generate manifest and add firstLevel dependencies
-	printOrder = true // print order om manually deploy
+	printOrder = true // print order for manually deploy
 	printTree = false // print dependency tree for debug purposes
 }
 ```
 3. If nesserary change `compile` configuration to `providedCompile` for those dependencies that are prolided by WildFly,
-for example:
+for example:  
 ```
 dependencies {
 	compile 'org.apache.qpid:qpid-client:0.32'
@@ -33,9 +45,8 @@ dependencies {
 #Gradle tasks
 * `gradle makeDeployments` copy all dependent jars into `C:\Path\To\Project\build\dependency-workspace`
 and adds Dependencies string into theirs MANIFEST.MF
-
 * `gradle deployDeployments` makes all of `makeDeployments` and copies jars from
-`C:\Path\To\Project\build\dependency-workspace` to `wildflyHome/standalone/deployments/`.
+`C:\Path\To\Project\build\dependency-workspace` to `C\Path\to\wildflyHome\standalone\deployments`.
 This task will be rewrited with jboss-cli because WildFly's scanner doesn't considers deploy order (by file attribute `create time`) and sometimes deploy failed.  
   * Workadrond 1:
 You have to restart server that deployments correctly loaded.
