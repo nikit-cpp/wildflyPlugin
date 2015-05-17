@@ -18,7 +18,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "gradle.plugin.com.github.nikit.cpp:wildflyPlugin:0.7"
+    classpath "gradle.plugin.com.github.nikit.cpp:wildflyPlugin:0.8"
   }
 }
 apply plugin: "com.github.nikit.cpp.wildflyPlugin"
