@@ -191,7 +191,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
         String name = dep.module.id.name
         String version = dep.module.id.version
 
-        println " " + "*"*level + " id=${dep.module.id} file=${jarSrc}"
+        println " " + "*"*level + " id=${dep.module.id} conf=${dep.configuration} file=${jarSrc}"
     }
 
     /**
