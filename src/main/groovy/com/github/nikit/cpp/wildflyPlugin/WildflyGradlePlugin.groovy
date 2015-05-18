@@ -90,8 +90,6 @@ class WildflyGradlePlugin implements Plugin<Project> {
 
     }
 
-
-
     private Configuration addConfiguration(ConfigurationContainer configurations, String name) {
         // https://github.com/gradle/gradle/blob/master/subprojects/plugins/src/main/groovy/org/gradle/api/plugins/WarPlugin.java
         // https://github.com/spring-projects/gradle-plugins/blob/master/propdeps-plugin/src/main/groovy/org/springframework/build/gradle/propdep/PropDepsPlugin.groovy
@@ -135,6 +133,21 @@ class WildflyGradlePlugin implements Plugin<Project> {
         return compileDependencies
     }
 
+    Set<ResolvedDependency> removeProvidedDependencies(Set<ResolvedDependency> input) {
+        Configuration confProvided = projectInstance.configurations[confNameProvided]
+        Set<ResolvedDependency> providedDependencies = confProvided.resolvedConfiguration.firstLevelModuleDependencies
+        Iterator iterator = input.iterator()
+        while(iterator.hasNext()) {
+            ResolvedDependency inp = iterator.next()
+            for(ResolvedDependency rd: providedDependencies) {
+                if (inp.moduleGroup==rd.moduleGroup && inp.moduleName == rd.moduleName && inp.moduleVersion == rd.moduleVersion) {
+                    iterator.remove()
+                }
+            }
+        }
+        return input
+    }
+
     /**
      * Основная функция, рекурсивно обрабатывающая дерево зависимостей.
      * Заполняет cachedDependencies
@@ -148,6 +161,8 @@ class WildflyGradlePlugin implements Plugin<Project> {
             preChildrenProcessed(dep, level)
 
             Set<ResolvedDependency> childrens = getChilderns(dep)
+
+            childrens = removeProvidedDependencies(childrens)
 
             // спускаемся на нижние уровни рекурсии
             processChildDependencies(childrens, level);
