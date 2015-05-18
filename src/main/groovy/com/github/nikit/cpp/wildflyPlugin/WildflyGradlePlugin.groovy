@@ -263,12 +263,11 @@ class WildflyGradlePlugin implements Plugin<Project> {
             sb.append('deployment.')
             sb.append(getJarFromDependency(it).name)
             sb.append(' export')
-            if(childrens.size() > 1) {
-                sb.append(', ')
-            }
+            sb.append(', ')
         }
-
-        return sb
+        String retStr = sb.toString()
+        retStr = retStr.substring(0, retStr.size()-2) // удаляем конечную строку ", "
+        return retStr
     }
 
     /**
