@@ -127,10 +127,8 @@ class WildflyGradlePlugin implements Plugin<Project> {
      */
     Set<ResolvedDependency> getRootDependencies() {
         Configuration confCompile = projectInstance.configurations[confNameCompile]
-        Configuration confProvided = projectInstance.configurations[confNameProvided]
         Set<ResolvedDependency> compileDependencies = confCompile.resolvedConfiguration.firstLevelModuleDependencies
-        Set<ResolvedDependency> providedDependencies = confProvided.resolvedConfiguration.firstLevelModuleDependencies
-        compileDependencies.removeAll(providedDependencies)
+        compileDependencies = removeProvidedDependencies(compileDependencies)
         return compileDependencies
     }
 
