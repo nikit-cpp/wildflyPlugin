@@ -161,9 +161,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
         for (ResolvedDependency dep : allDependencies) {
             preChildrenProcessed(dep, level)
 
-            Set<ResolvedDependency> childrens = getChilderns(dep)
-
-            childrens = removeProvidedDependencies(childrens)
+            Set<ResolvedDependency> childrens = getChildrens(dep)
 
             // спускаемся на нижние уровни рекурсии
             processChildDependencies(childrens, level);
@@ -190,13 +188,15 @@ class WildflyGradlePlugin implements Plugin<Project> {
      * @param dep какая-то зависимость
      * @return множество её потомков
      */
-    Set<ResolvedDependency> getChilderns(ResolvedDependency dep) {
+    Set<ResolvedDependency> getChildrens(ResolvedDependency dep) {
         Set<ResolvedDependency> childrens = new HashSet<ResolvedDependency>();
         dep.children.each {
             if (it.configuration == confNameCompile) {
                 childrens.add(it)
             }
         }
+
+        childrens = removeProvidedDependencies(childrens)
 
         return childrens
     }
@@ -235,14 +235,16 @@ class WildflyGradlePlugin implements Plugin<Project> {
         File jarDest = new File(dependencyWorkspace, jarSrc.name)
         GFileUtils.copyFile(jarSrc, jarDest)
 
-        Set<ResolvedDependency> childrens = getChilderns(dep)
+        Set<ResolvedDependency> childrens = getChildrens(dep)
 
         if(childrens.size() > 0) {
             // Добавление в MANIFEST.MF зависимостей
             // https://github.com/jjzazuet/jgl/blob/master/jgl-demos/build.gradle
             projectInstance.ant.jar(destfile: jarDest, update: true) {
                 delegate.manifest {
-                    attribute(name: 'Dependencies', value: makeDependenciesString(childrens))
+                    String depStr = makeDependenciesString(childrens)
+                    // println "Dependencies '${depStr}' added to manifest ${jarSrc.name}"
+                    attribute(name: 'Dependencies', value: depStr)
                 }
             }
         }
