@@ -20,7 +20,6 @@ class WildflyGradlePlugin implements Plugin<Project> {
     File dependencyWorkspace
     Project projectInstance
     String extencionName = 'wildfly'
-    boolean isDeploy // TODO будет убрано
     static int dependencyNumber
     // Упорядоченное хранилище зависимостей, предназначенное для предотвращения дублирования
     List<ResolvedDependency> cachedDependencies
@@ -34,8 +33,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
     String AFTER_MAKE_DEPLOYMENTS_TASK = 'assemble'
 
     // own tasks
-    String MAKE_DEPLOYMENTS_TASK = 'makeDeployments'
-    String DEPLOY_DEPLOYMENTS_TASK = 'deployDeployments'
+    String MAKE_MODULES_TASK = 'modules'
 
     void apply(Project project) {
         cachedDependencies = new ArrayList<>()
@@ -52,32 +50,15 @@ class WildflyGradlePlugin implements Plugin<Project> {
             addConfiguration(project.configurations, confNameProvided);
         }
 
-        println "WildFly deployments will be stored in '" + dependencyWorkspace + "'"
-
         project.extensions.create(extencionName, WildflyPluginExtension)
 
 
-
-        Task makeDeployments = project.task(MAKE_DEPLOYMENTS_TASK) << {
-            isDeploy = false
+        Task makeDeployments = project.task(MAKE_MODULES_TASK) << {
+            println "WildFly modules will be stored in '" + dependencyWorkspace + "'"
             processChildDependencies(getRootDependencies(), 0);
 
-            println "Deployment's jars must be deployed in the following order:"
             processCachedDependencies();
 
-        }
-        projectInstance.tasks[AFTER_MAKE_DEPLOYMENTS_TASK].dependsOn(makeDeployments)
-
-        Task deployDeployments = project.task(DEPLOY_DEPLOYMENTS_TASK) << {
-            isDeploy = true
-            processChildDependencies(getRootDependencies(), 0);
-
-            println "Deployment's jars will be deployed in the following order:"
-            processCachedDependencies();
-
-        }
-        deployDeployments.doLast {
-            println 'deployDeployments.doLast'
         }
 
         projectInstance.tasks[JAR_TASK].doFirst {
@@ -104,21 +85,12 @@ class WildflyGradlePlugin implements Plugin<Project> {
         return configuration
     }
 
-
-
-
     /**
      * Последовательно обрабатывает все зависимости cachedDependencies
      */
     void processCachedDependencies() {
         for (ResolvedDependency dep : cachedDependencies) {
             File changedJar = createModule(dep)
-            if (isDeploy) {
-                deployDeployment(changedJar)
-            }
-            if (projectInstance.wildfly.printOrder) {
-                printDeployment(changedJar)
-            }
         }
     }
 
@@ -256,6 +228,9 @@ class WildflyGradlePlugin implements Plugin<Project> {
         String name = dep.module.id.name
         String version = dep.module.id.version
 
+        group = group.replaceAll("\\.", File.separator)
+        name = name.replaceAll("\\.", File.separator)
+
         File modulePath = new File(dependencyWorkspace, group + File.separator + name + File.separator + version)
         modulePath.mkdirs()
         File jarDest = new File(modulePath, jarSrc.name)
@@ -266,19 +241,25 @@ class WildflyGradlePlugin implements Plugin<Project> {
 
         def mb = new MarkupBuilder(new File(modulePath, "module.xml").newPrintWriter())
 
-        mb.module("xmlns":"urn:jboss:module:1.3", "name":name, "slot":version) {
+        mb.module("xmlns":"urn:jboss:module:1.3", "name":getModuleName(dep), "slot":version) {
             resources() {
                 'resource-root'("path": jarDest.name)
             }
 
             dependencies() {
                 for(ResolvedDependency rd: childrens) {
-                    module("name": rd.module.id.name + ":" + rd.module.id.version, "export": "true")
+                    module("name": getModuleName(rd), "slot" : rd.module.id.version, "export": "true")
                 }
             }
         }
 
         return jarDest
+    }
+
+    String getModuleName(ResolvedDependency dep) {
+        String group = dep.module.id.group
+        String name = dep.module.id.name
+        return group + "." + name
     }
 
     /**
@@ -331,5 +312,4 @@ class WildflyPluginExtension {
     String deploymentDestination
     boolean addFirstLevelDependenciesToManifest
     boolean printTree
-    boolean printOrder
 }
