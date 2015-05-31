@@ -28,7 +28,6 @@ apply plugin: "com.github.nikit.cpp.wildflyPlugin"
 wildfly {
 	deploymentDestination = 'C:\\path\\to\\wildfly\\standalone\\deployments' // or '${WILDFLY_HOME}\\standalone\\deployments'
 	addFirstLevelDependenciesToManifest = true // generate manifest and add firstLevel dependencies
-	printOrder = true // print order for manually deploy
 	printTree = false // print dependency tree for debug purposes
 }
 ```
@@ -43,12 +42,5 @@ dependencies {
 ```
 
 #Gradle tasks
-* `gradle makeDeployments` copy all dependent jars into `C:\Path\To\Project\build\dependency-workspace`
-and adds Dependencies string into theirs MANIFEST.MF
-* `gradle deployDeployments` makes all of `makeDeployments` and copies jars from *dependency-workspace*
-`C:\Path\To\Project\build\dependency-workspace` to *deploymentDestination* `C:\Path\to\wildflyHome\standalone\deployments`.
-This task will be rewrited with jboss-cli because WildFly's scanner doesn't considers deploy order (by file attribute `create time`) and sometimes deploy failed.  
-  * Workadrond 1:
-You have to restart server that deployments correctly loaded.
-  * Workadrond 2:
-Don't use `deployDeployments` task, enable `printOrder = true` and deploy dependencies manually.
+* `gradle modules` copy all dependent jars into `C:\Path\To\Project\build\dependency-workspace`
+and makes modules template from it (you have to add common Java EE dependencies, e. g. javax.api ...)
