@@ -1,5 +1,6 @@
 package com.github.nikit.cpp.wildflyPlugin
 
+import groovy.xml.MarkupBuilder
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -111,7 +112,7 @@ class WildflyGradlePlugin implements Plugin<Project> {
      */
     void processCachedDependencies() {
         for (ResolvedDependency dep : cachedDependencies) {
-            File changedJar = createDeploymentInDependencyWorkspace(dep)
+            File changedJar = createModule(dep)
             if (isDeploy) {
                 deployDeployment(changedJar)
             }
@@ -246,6 +247,37 @@ class WildflyGradlePlugin implements Plugin<Project> {
                 }
             }
         }
+        return jarDest
+    }
+
+    File createModule(ResolvedDependency dep) {
+        File jarSrc = getJarFromDependency(dep)
+        String group = dep.module.id.group
+        String name = dep.module.id.name
+        String version = dep.module.id.version
+
+        File modulePath = new File(dependencyWorkspace, group + File.separator + name + File.separator + version)
+        modulePath.mkdirs()
+        File jarDest = new File(modulePath, jarSrc.name)
+        GFileUtils.copyFile(jarSrc, jarDest)
+
+        Set<ResolvedDependency> childrens = getChildrens(dep)
+
+
+        def mb = new MarkupBuilder(new File(modulePath, "module.xml").newPrintWriter())
+
+        mb.module("xmlns":"urn:jboss:module:1.3", "name":name, "slot":version) {
+            resources() {
+                'resource-root'("path": jarDest.name)
+            }
+
+            dependencies() {
+                for(ResolvedDependency rd: childrens) {
+                    module("name": rd.module.id.name + ":" + rd.module.id.version, "export": "true")
+                }
+            }
+        }
+
         return jarDest
     }
 
