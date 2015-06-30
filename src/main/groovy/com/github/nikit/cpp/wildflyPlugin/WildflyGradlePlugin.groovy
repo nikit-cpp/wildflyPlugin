@@ -227,12 +227,9 @@ class WildflyGradlePlugin implements Plugin<Project> {
         String group = dep.module.id.group
         String name = dep.module.id.name
         String version = dep.module.id.version
-        if(group.contains(".")) {
-            group = group.replaceAll("\\.", File.separator)
-        }
-        if(name.contains(".")) {
-            name = name.replaceAll("\\.", File.separator)
-        }
+
+        group = group.replace('.' as char, File.separatorChar)
+        name = name.replace('.' as char, File.separatorChar)
 
         File modulePath = new File(dependencyWorkspace, group + File.separator + name + File.separator + version)
         modulePath.mkdirs()
