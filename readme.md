@@ -1,3 +1,7 @@
+#Project is dead
+use plugin
+https://github.com/nikit-cpp/wildflyDeployPlugin
+
 #Info
 This plugin adds `providedCompile` configuration if not exist,
 prepares WildFly deploymets recurcively walks on dependency
